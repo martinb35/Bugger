@@ -14,29 +14,46 @@ A smart bug tracking dashboard that connects to Azure DevOps and categorizes you
 ## 📋 Setup
 
 1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/azure-devops-bug-tracker.git
-   cd azure-devops-bug-tracker
+   ```cmd
+   git clone https://github.com/YOUR_USERNAME/bugger.git
+   cd bugger
    ```
 
 2. **Install dependencies:**
-   ```bash
+   ```cmd
    pip install -r requirements.txt
    ```
 
-3. **Configure environment variables:**
-   ```bash
-   cp .env.example .env
+3. **Create a Personal Access Token (PAT):**
+   
+   To access Azure DevOps APIs, you need a Personal Access Token:
+   
+   - Go to [Azure DevOps](https://microsoft.visualstudio.com)
+   - Sign in to your account
+   - Click on your profile picture (top-right corner) → **Personal Access Tokens**
+   - Click **+ New Token**
+   - Fill in the form:
+     - **Name**: `Bugger Dashboard` (or any descriptive name)
+     - **Organization**: Select your organization
+     - **Expiration**: Choose 90 days, 1 year, or custom
+     - **Scopes**: Select **Custom defined**, then check:
+       - ✅ **Work Items (Read)** - Required to fetch bug data
+   - Click **Create**
+   - **Important**: Copy the token immediately - you won't see it again!
+
+4. **Configure environment variables:**
+   ```cmd
+   copy .env.example .env
    ```
    
    Edit `.env` with your Azure DevOps credentials:
-   - **PAT**: Get from Azure DevOps → User Settings → Personal Access Tokens
-   - **ORG**: Your Azure DevOps organization name
+   - **PAT**: Paste the Personal Access Token you just created
+   - **ORG**: Your Azure DevOps organization name (from the URL: `https://microsoft.visualstudio.com/YOUR_ORG/`)
    - **PROJECT**: Your project name
-   - **EMAIL**: Your Azure DevOps email
+   - **EMAIL**: Your Azure DevOps email address
 
-4. **Run the application:**
-   ```bash
+5. **Run the application:**
+   ```cmd
    python main.py
    ```
 
@@ -61,7 +78,29 @@ The dashboard fetches your active bugs from Azure DevOps and intelligently categ
 - PAT tokens are stored in environment variables only
 - `.env` file is excluded from git commits
 - No credentials are hardcoded in source code
+- **Never share your PAT token** - treat it like a password
 
 ## 🤝 Contributing
 
 Feel free to submit issues and enhancement requests!
+
+## 📝 Revision History
+
+### [1.1.0] - 2023-10-08
+
+#### Added
+- Detailed steps for creating a Personal Access Token (PAT) in Azure DevOps
+- Comprehensive setup guide with CMD commands
+- Security guidelines and best practices for PAT usage
+- Documentation on bug categorization patterns
+- Revision of command examples to use CMD syntax
+
+#### Changed
+- Updated all command examples to use CMD syntax
+
+#### Fixed
+- Minor typos and formatting issues in the README
+
+### [1.0.0] - 2023-09-15
+
+- Initial release of Bugger - We Use Machines
