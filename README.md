@@ -52,6 +52,8 @@ The application is organized into modular components:
 - `questionable_analyzer.py` - Questionable bug detection
 - `main.py` - Main orchestration and Gradio UI
 
+<img src="app_screen.jpg" alt="Bugger Dashboard Screenshot" width="40%">
+
 ## Revision History
 
 ### v0.0.2 (2025-05-30)
