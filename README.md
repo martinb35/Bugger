@@ -1,4 +1,4 @@
-# Bug Analyzer Dashboard
+# Bugger
 
 A Gradio-based dashboard for analyzing and categorizing Azure DevOps bugs, helping you prioritize and clean up your bug backlog.
 
