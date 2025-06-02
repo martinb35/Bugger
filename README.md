@@ -66,7 +66,7 @@ The application is organized into modular components:
 - `ai_bug_analyzer.py` - GPT-4o powered intelligent bug analysis (optional)
 - `main.py` - Main orchestration and adaptive Gradio UI
 
-<img src="app_screen.jpg" alt="Bugger Dashboard Screenshot" width="60%">
+<img src="app_screen.jpg" alt="Bugger Dashboard Screenshot" width="75%">
 
 ## Revision History
 
