@@ -4,13 +4,33 @@ from bug_analyzer import BugAnalyzer
 from bug_categorizer import BugCategorizer
 from report_generator import ReportGenerator
 from questionable_analyzer import QuestionableAnalyzer
+from config import AI_ENABLED
+
+# Conditionally import AI analyzer
+if AI_ENABLED:
+    try:
+        from ai_bug_analyzer import AIBugAnalyzer
+        print("✅ AI-powered analysis enabled")
+    except ImportError:
+        AI_ENABLED = False
+        print("⚠️ Failed to load AI analyzer - falling back to heuristic analysis")
+
+if not AI_ENABLED:
+    print("📊 Using heuristic-based analysis")
 
 def fetch_and_summarize_bugs(progress=gr.Progress()):
     """Main function to fetch and analyze bugs"""
     try:
         # Initialize components
         client = AzureDevOpsClient()
-        questionable_analyzer = QuestionableAnalyzer()
+        
+        # Choose analyzer based on AI availability
+        if AI_ENABLED:
+            analyzer_instance = AIBugAnalyzer()
+            analysis_type = "AI-powered"
+        else:
+            analyzer_instance = QuestionableAnalyzer()
+            analysis_type = "heuristic"
         
         progress(0.1, desc="Fetching bug list...")
         
@@ -25,13 +45,13 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
         # Get detailed bug information
         bugs_data, created_dates, activated_dates = client.fetch_bug_details(work_items)
         
-        progress(0.3, desc="Analyzing bugs...")
+        progress(0.3, desc=f"Running {analysis_type} bug analysis...")
         
-        # Analyze and separate questionable vs actionable bugs with progress
+        # Analysis with progress (works for both AI and heuristic)
         def analysis_progress(percent, message):
             progress(0.3 + (percent / 100) * 0.6, desc=message)
         
-        questionable_bugs, actionable_bugs_data = questionable_analyzer.analyze_and_separate_bugs(
+        questionable_bugs, actionable_bugs_data = analyzer_instance.analyze_and_separate_bugs(
             bugs_data, 
             progress_callback=analysis_progress
         )
@@ -46,13 +66,21 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
         # Start building the complete report
         md = []
         
-        # Add questionable bugs section first
-        md.extend(questionable_analyzer.generate_questionable_section(questionable_bugs))
+        # Add analysis mode indicator
+        if AI_ENABLED:
+            md.append("# 🤖 AI-Powered Bug Analysis Report")
+            md.append("*Analysis powered by GPT-4o for enhanced accuracy*\n")
+        else:
+            md.append("# 📊 Heuristic Bug Analysis Report")
+            md.append("*Analysis using pattern-based heuristics*\n")
+        
+        # Add questionable bugs section
+        md.extend(analyzer_instance.generate_questionable_section(questionable_bugs))
         
         # Initialize components for actionable bugs analysis
-        analyzer = BugAnalyzer()
+        bug_analyzer = BugAnalyzer()
         categorizer = BugCategorizer()
-        report_generator = ReportGenerator(analyzer, categorizer)
+        report_generator = ReportGenerator(bug_analyzer, categorizer)
         
         # Generate report for actionable bugs only
         report = report_generator.generate_report(
@@ -75,12 +103,25 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
 
 # Create Gradio interface
 with gr.Blocks() as demo:
-    gr.Markdown("# 🐞 Bugger")
+    if AI_ENABLED:
+        title = "# 🤖 Bugger - AI-Powered Bug Analysis"
+        subtitle = "Enhanced with GPT-4o for intelligent bug categorization"
+    else:
+        title = "# 📊 Bugger - Heuristic Bug Analysis"
+        subtitle = "Pattern-based bug analysis (install openai package to enable AI)"
+    
+    gr.Markdown(title)
+    gr.Markdown(f"*{subtitle}*")
     
     with gr.Row():
         btn = gr.Button("🔄 Refresh Analysis", scale=1)
         
-    output = gr.Markdown(value="Click 'Refresh Analysis' to start bug analysis...")
+    if AI_ENABLED:
+        initial_message = "Click 'Refresh Analysis' to start AI-powered bug analysis..."
+    else:
+        initial_message = "Click 'Refresh Analysis' to start heuristic bug analysis..."
+        
+    output = gr.Markdown(value=initial_message)
     
     # Both button click and demo load use the same function with progress
     btn.click(fn=fetch_and_summarize_bugs, outputs=output, show_progress=True)

@@ -10,19 +10,35 @@ PROJECT = os.getenv('AZURE_DEVOPS_PROJECT')
 USER_EMAIL = os.getenv('AZURE_DEVOPS_USER_EMAIL')
 AZURE_DEVOPS_PAT = os.getenv('AZURE_DEVOPS_PAT')
 
+# AI Configuration
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
 # Configuration constants
 BATCH_SIZE = 50
 
-# Validate required environment variables
-if not all([ORG, PROJECT, USER_EMAIL, AZURE_DEVOPS_PAT]):
-    missing = []
-    if not ORG:
-        missing.append('AZURE_DEVOPS_ORG')
-    if not PROJECT:
-        missing.append('AZURE_DEVOPS_PROJECT')
-    if not USER_EMAIL:
-        missing.append('AZURE_DEVOPS_USER_EMAIL')
-    if not AZURE_DEVOPS_PAT:
-        missing.append('AZURE_DEVOPS_PAT')
-    
+# Validate required environment variables (excluding optional AI features)
+required_vars = {
+    'AZURE_DEVOPS_ORG': ORG,
+    'AZURE_DEVOPS_PROJECT': PROJECT, 
+    'AZURE_DEVOPS_USER_EMAIL': USER_EMAIL,
+    'AZURE_DEVOPS_PAT': AZURE_DEVOPS_PAT
+}
+
+missing = [var for var, value in required_vars.items() if not value]
+
+if missing:
     raise ValueError(f"Missing required environment variables: {', '.join(missing)}")
+
+# Optional: Set OpenAI API key if available
+AI_ENABLED = False
+if OPENAI_API_KEY:
+    try:
+        import openai
+        openai.api_key = OPENAI_API_KEY
+        AI_ENABLED = True
+        print("AI analysis enabled with OpenAI")
+    except ImportError:
+        print("Warning: OpenAI package not installed. Using heuristic analysis only.")
+        AI_ENABLED = False
+else:
+    print("No OpenAI API key found. Using heuristic analysis only.")
