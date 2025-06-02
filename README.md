@@ -27,7 +27,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ### How to get your Personal Access Token (PAT):
-1. Go to https://microsoft.visualstudio.com and sign in
+1. Go to https://dev.azure.com and sign in
 2. Click on your profile picture (top right) → Security → Personal access tokens
 3. Click "New Token"
 4. Give it a name and select expiration
