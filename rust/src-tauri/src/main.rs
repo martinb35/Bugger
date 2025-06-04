@@ -40,7 +40,7 @@ impl AppConfig {
 mod azure_devops;
 use azure_devops::AzureDevOpsClient;
 mod bug_analysis;
-use bug_analysis::{analyze_bugs, categorize_bugs, BugCategory, QuestionableCategory};
+use bug_analysis::{analyze_bugs, categorize_bugs};
 
 #[tauri::command]
 fn fetch_and_analyze_bugs() -> Result<String, String> {
@@ -59,16 +59,16 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
     let categorized = categorize_bugs(actionable);
     // Generate HTML report
     let mut html = String::new();
-    html.push_str("<h2>Bug Stats</h2><ul>");
+    html.push_str("<h2>📈 Bug Stats</h2><ul>");
     html.push_str(&format!("<li><b>Total active bugs:</b> {}</li>", actionable.len() + questionable.len()));
     html.push_str(&format!("<li><b>Actionable bugs:</b> {}</li>", actionable.len()));
     html.push_str(&format!("<li><b>Questionable bugs:</b> {}</li>", questionable.len()));
     html.push_str("</ul>");
     if !questionable.is_empty() {
-        html.push_str("<details><summary>Show questionable bugs</summary><ul>");
+        html.push_str("<details open><summary>❓ Questionable Non-Actionable Bugs</summary><div class='warning'>Review these first to clean up your backlog before focusing on actionable bugs.</div><ul>");
         for (bug, cat) in questionable {
             html.push_str(&format!(
-                "<li><b>#{}:</b> {}<br><small>Reason: {:?}</small></li>",
+                "<li><b>#{}:</b> {}<br><span class='category-Other'><small>Reason: {:?}</small></span></li>",
                 bug.id,
                 html_escape::encode_text(&bug.title),
                 cat
@@ -76,9 +76,10 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
         }
         html.push_str("</ul></details>");
     }
-    html.push_str("<h2>Actionable Bug Categories</h2>");
+    html.push_str("<h2>🗂️ Actionable Bug Categories</h2>");
     for (cat, bugs) in &categorized {
-        html.push_str(&format!("<h3>{:?} ({})</h3><ul>", cat, bugs.len()));
+        let cat_class = format!("category-{:?}", cat);
+        html.push_str(&format!("<details><summary><span class='{}'>{:?} ({})</span></summary><ul>", cat_class, cat, bugs.len()));
         for bug in bugs.iter() {
             html.push_str(&format!(
                 "<li><b>#{}:</b> {}<br><small>State: {} | Created: {}</small>",
@@ -97,7 +98,7 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
             }
             html.push_str("</li>");
         }
-        html.push_str("</ul>");
+        html.push_str("</ul></details>");
     }
     Ok(html)
 }

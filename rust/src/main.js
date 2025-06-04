@@ -1,26 +1,16 @@
 const { invoke } = window.__TAURI__.core;
 
-let greetInputEl;
-let greetMsgEl;
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
-}
-
 window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  const greetForm = document.querySelector("#greet-form");
-  if (greetForm) {
-    greetForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      greet();
-    });
-  }
-
   const fetchBugsBtn = document.getElementById("fetch-bugs-btn");
   const reportArea = document.getElementById("report-area");
+
+  // Show initial message on load
+  if (reportArea) {
+    reportArea.innerHTML = `<div class="initial-message">
+      Click <b>Refresh Analysis</b> to start heuristic bug analysis...
+    </div>`;
+  }
+
   if (fetchBugsBtn && reportArea) {
     fetchBugsBtn.addEventListener("click", async () => {
       reportArea.innerHTML = `<div class="spinner"></div><em>Fetching and analyzing bugs...</em>`;

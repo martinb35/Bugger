@@ -107,6 +107,129 @@ button {
   100% { transform: rotate(360deg); }
 }
 
+.subtitle {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 0.5em;
+  font-style: italic;
+}
+
+.refresh-btn {
+  background: linear-gradient(90deg, #396cd8 0%, #24c8db 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  padding: 0.7em 1.5em;
+  font-size: 1.1em;
+  border-radius: 8px;
+  margin-bottom: 1.5em;
+  box-shadow: 0 2px 8px rgba(36,200,219,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.refresh-btn:hover {
+  background: linear-gradient(90deg, #24c8db 0%, #396cd8 100%);
+  box-shadow: 0 4px 16px rgba(36,200,219,0.15);
+}
+
+.report-area {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: left;
+}
+.initial-message {
+  color: #888;
+  font-size: 1.1em;
+  margin-top: 2em;
+  text-align: center;
+}
+
+/* Markdown-like styles */
+h2, h3, h4 {
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+}
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.2em; }
+h4 { font-size: 1.05em; }
+
+ul, ol {
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+}
+li {
+  margin-bottom: 0.3em;
+}
+
+b, strong { font-weight: 700; }
+i, em { font-style: italic; }
+
+blockquote {
+  border-left: 4px solid #24c8db;
+  background: #f0faff;
+  color: #333;
+  margin: 1em 0;
+  padding: 0.7em 1.2em;
+  border-radius: 4px;
+}
+
+code {
+  background: #f4f4f4;
+  color: #c7254e;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  font-size: 0.97em;
+}
+
+/* Collapsible details styling */
+details {
+  margin-bottom: 1em;
+  background: #f8fafd;
+  border-radius: 6px;
+  border: 1px solid #e0e6f0;
+  padding: 0.7em 1em;
+}
+details[open] {
+  box-shadow: 0 2px 8px rgba(36,200,219,0.07);
+}
+details summary {
+  font-weight: 600;
+  cursor: pointer;
+  color: #24c8db;
+  outline: none;
+  margin-bottom: 0.5em;
+}
+
+/* Category color coding */
+.category-Crash { color: #d7263d; font-weight: 700; }
+.category-Performance { color: #fbb13c; font-weight: 700; }
+.category-Security { color: #1e90ff; font-weight: 700; }
+.category-FileSystem { color: #6c3483; font-weight: 700; }
+.category-Memory { color: #16a085; font-weight: 700; }
+.category-Driver { color: #b9770e; font-weight: 700; }
+.category-Boot { color: #34495e; font-weight: 700; }
+.category-UI { color: #e67e22; font-weight: 700; }
+.category-Network { color: #2980b9; font-weight: 700; }
+.category-Other { color: #888; font-weight: 700; }
+
+/* Warning and info boxes */
+.warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffe066;
+  padding: 0.7em 1.2em;
+  border-radius: 4px;
+  margin: 1em 0;
+}
+.info {
+  background: #eaf6fb;
+  color: #31708f;
+  border-left: 4px solid #24c8db;
+  padding: 0.7em 1.2em;
+  border-radius: 4px;
+  margin: 1em 0;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;
