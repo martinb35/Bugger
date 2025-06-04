@@ -70,8 +70,8 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
             html.push_str(&format!(
                 "<li><b>#{}:</b> {}<br><span class='category-Other'><small>Reason: {:?}</small></span></li>",
                 bug.id,
-                html_escape::encode_text(&bug.title),
-                cat
+                html_escape::encode_text(&bug.title), // only escape user content
+                cat // do not escape HTML tags
             ));
         }
         html.push_str("</ul></details>");
@@ -84,7 +84,7 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
             html.push_str(&format!(
                 "<li><b>#{}:</b> {}<br><small>State: {} | Created: {}</small>",
                 bug.id,
-                html_escape::encode_text(&bug.title),
+                html_escape::encode_text(&bug.title), // only escape user content
                 html_escape::encode_text(&bug.state),
                 bug.created_date.as_deref().unwrap_or("-")
             ));
@@ -92,7 +92,7 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
                 if !desc.trim().is_empty() {
                     html.push_str(&format!(
                         "<br><details><summary>Description</summary><div style='white-space:pre-wrap'>{}</div></details>",
-                        html_escape::encode_text(desc)
+                        desc // DO NOT escape here, allow HTML/markdown in bug descriptions
                     ));
                 }
             }
