@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bug Analyzer</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Azure DevOps Bug Analyzer</h1>
+      <div class="subtitle">Pattern-based bug analysis (install OpenAI for AI mode)</div>
+      <button id="fetch-bugs-btn" class="refresh-btn">🔄 Refresh Analysis</button>
+      <div id="report-area" class="report-area">
+        <div class="initial-message">
+          Click <b>Refresh Analysis</b> to start heuristic bug analysis...
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
