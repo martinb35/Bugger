@@ -39,7 +39,6 @@ impl AppConfig {
 
 mod azure_devops;
 use azure_devops::AzureDevOpsClient;
-use tauri::Manager;
 
 #[tauri::command]
 fn fetch_and_analyze_bugs() -> Result<String, String> {
@@ -51,17 +50,25 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
         return Ok("<b>No active bugs assigned to you.</b>".to_string());
     }
     let bugs = client.fetch_bug_details(&ids)?;
-    // List the bug titles and IDs in HTML using the struct fields
     let mut html = String::from("<h2>Active Bugs</h2><ul>");
     for bug in bugs {
         html.push_str(&format!(
-            "<li><b>#{}:</b> {}<br><small>State: {} | Created: {} | Activated: {}</small></li>",
+            "<li><b>#{}:</b> {}<br><small>State: {} | Created: {} | Activated: {}</small>",
             bug.id,
             html_escape::encode_text(&bug.title),
             html_escape::encode_text(&bug.state),
             bug.created_date.as_deref().unwrap_or("-"),
             bug.activated_date.as_deref().unwrap_or("-")
         ));
+        if let Some(desc) = &bug.description {
+            if !desc.trim().is_empty() {
+                html.push_str(&format!(
+                    "<br><details><summary>Description</summary><div style='white-space:pre-wrap'>{}</div></details>",
+                    html_escape::encode_text(desc)
+                ));
+            }
+        }
+        html.push_str("</li>");
     }
     html.push_str("</ul>");
     Ok(html)
