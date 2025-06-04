@@ -39,6 +39,8 @@ impl AppConfig {
 
 mod azure_devops;
 use azure_devops::AzureDevOpsClient;
+mod bug_analysis;
+use bug_analysis::{analyze_bugs, categorize_bugs, BugCategory, QuestionableCategory};
 
 #[tauri::command]
 fn fetch_and_analyze_bugs() -> Result<String, String> {
@@ -49,28 +51,54 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
     if ids.is_empty() {
         return Ok("<b>No active bugs assigned to you.</b>".to_string());
     }
-    let bugs = client.fetch_bug_details(&ids)?;
-    println!("[Tauri backend] Found {} bugs", bugs.len());
-    let mut html = String::from("<h2>Active Bugs</h2><ul>");
-    for bug in bugs {
-        html.push_str(&format!(
-            "<li><b>#{}:</b> {}<br><small>State: {} | Created: {}</small>",
-            bug.id,
-            html_escape::encode_text(&bug.title),
-            html_escape::encode_text(&bug.state),
-            bug.created_date.as_deref().unwrap_or("-")
-        ));
-        if let Some(desc) = &bug.description {
-            if !desc.trim().is_empty() {
-                html.push_str(&format!(
-                    "<br><details><summary>Description</summary><div style='white-space:pre-wrap'>{}</div></details>",
-                    html_escape::encode_text(desc)
-                ));
-            }
-        }
-        html.push_str("</li>");
-    }
+    let all_bugs = client.fetch_bug_details(&ids)?;
+    println!("[Tauri backend] Found {} bugs", all_bugs.len());
+    let analysis = analyze_bugs(all_bugs);
+    let actionable = &analysis.actionable;
+    let questionable = &analysis.questionable;
+    let categorized = categorize_bugs(actionable);
+    // Generate HTML report
+    let mut html = String::new();
+    html.push_str("<h2>Bug Stats</h2><ul>");
+    html.push_str(&format!("<li><b>Total active bugs:</b> {}</li>", actionable.len() + questionable.len()));
+    html.push_str(&format!("<li><b>Actionable bugs:</b> {}</li>", actionable.len()));
+    html.push_str(&format!("<li><b>Questionable bugs:</b> {}</li>", questionable.len()));
     html.push_str("</ul>");
+    if !questionable.is_empty() {
+        html.push_str("<details><summary>Show questionable bugs</summary><ul>");
+        for (bug, cat) in questionable {
+            html.push_str(&format!(
+                "<li><b>#{}:</b> {}<br><small>Reason: {:?}</small></li>",
+                bug.id,
+                html_escape::encode_text(&bug.title),
+                cat
+            ));
+        }
+        html.push_str("</ul></details>");
+    }
+    html.push_str("<h2>Actionable Bug Categories</h2>");
+    for (cat, bugs) in &categorized {
+        html.push_str(&format!("<h3>{:?} ({})</h3><ul>", cat, bugs.len()));
+        for bug in bugs.iter() {
+            html.push_str(&format!(
+                "<li><b>#{}:</b> {}<br><small>State: {} | Created: {}</small>",
+                bug.id,
+                html_escape::encode_text(&bug.title),
+                html_escape::encode_text(&bug.state),
+                bug.created_date.as_deref().unwrap_or("-")
+            ));
+            if let Some(desc) = &bug.description {
+                if !desc.trim().is_empty() {
+                    html.push_str(&format!(
+                        "<br><details><summary>Description</summary><div style='white-space:pre-wrap'>{}</div></details>",
+                        html_escape::encode_text(desc)
+                    ));
+                }
+            }
+            html.push_str("</li>");
+        }
+        html.push_str("</ul>");
+    }
     Ok(html)
 }
 
