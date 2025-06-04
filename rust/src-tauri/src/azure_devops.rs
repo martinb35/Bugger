@@ -2,12 +2,21 @@ use base64::Engine; // Needed for .encode()
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde_json::Value;
-use std::collections::HashMap;
 use crate::AppConfig;
 
 pub struct AzureDevOpsClient {
     pub config: AppConfig,
     client: Client,
+}
+
+#[derive(Debug, Clone)]
+pub struct Bug {
+    pub id: u64,
+    pub title: String,
+    pub state: String,
+    pub created_date: Option<String>,
+    pub activated_date: Option<String>,
+    pub description: Option<String>,
 }
 
 impl AzureDevOpsClient {
@@ -52,11 +61,10 @@ impl AzureDevOpsClient {
         Ok(ids)
     }
 
-    pub fn fetch_bug_details(&self, ids: &[u64]) -> Result<(Vec<HashMap<String, Value>>, Vec<(u64, String)>, Vec<(u64, String)>), String> {
+    pub fn fetch_bug_details(&self, ids: &[u64]) -> Result<Vec<Bug>, String> {
         if ids.is_empty() {
-            return Ok((vec![], vec![], vec![]));
+            return Ok(vec![]);
         }
-        let ids_str = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",");
         let url = format!(
             "https://dev.azure.com/{}/{}/_apis/wit/workitemsbatch?api-version=7.0",
             self.config.org, self.config.project
@@ -86,34 +94,26 @@ impl AzureDevOpsClient {
             .map_err(|e| format!("Request error: {}", e))?;
         let resp_text = resp.text().map_err(|e| format!("Response text error: {}", e))?;
         let json: Value = serde_json::from_str(&resp_text).map_err(|e| format!("JSON error: {}", e))?;
-        let mut bugs_data = vec![];
-        let mut created_dates = vec![];
-        let mut activated_dates = vec![];
+        let mut bugs = vec![];
         if let Some(items) = json["value"].as_array() {
             for item in items {
-                let mut bug = HashMap::new();
-                if let Some(fields) = item["fields"].as_object() {
-                    for (k, v) in fields {
-                        bug.insert(k.clone(), v.clone());
-                        if k == "System.CreatedDate" {
-                            if let Some(id) = item["id"].as_u64() {
-                                if let Some(date) = v.as_str() {
-                                    created_dates.push((id, date.to_string()));
-                                }
-                            }
-                        }
-                        if k == "System.ActivatedDate" {
-                            if let Some(id) = item["id"].as_u64() {
-                                if let Some(date) = v.as_str() {
-                                    activated_dates.push((id, date.to_string()));
-                                }
-                            }
-                        }
-                    }
-                }
-                bugs_data.push(bug);
+                let fields = item["fields"].as_object();
+                let id = item["id"].as_u64().unwrap_or(0);
+                let title = fields.and_then(|f| f.get("System.Title")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                let state = fields.and_then(|f| f.get("System.State")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                let created_date = fields.and_then(|f| f.get("System.CreatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                let activated_date = fields.and_then(|f| f.get("System.ActivatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                let description = fields.and_then(|f| f.get("System.Description")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                bugs.push(Bug {
+                    id,
+                    title,
+                    state,
+                    created_date,
+                    activated_date,
+                    description,
+                });
             }
         }
-        Ok((bugs_data, created_dates, activated_dates))
+        Ok(bugs)
     }
 }

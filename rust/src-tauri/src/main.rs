@@ -50,13 +50,18 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
     if ids.is_empty() {
         return Ok("<b>No active bugs assigned to you.</b>".to_string());
     }
-    let (bugs_data, _created_dates, _activated_dates) = client.fetch_bug_details(&ids)?;
-    // For now, just list the bug titles and IDs in HTML
+    let bugs = client.fetch_bug_details(&ids)?;
+    // List the bug titles and IDs in HTML using the struct fields
     let mut html = String::from("<h2>Active Bugs</h2><ul>");
-    for bug in bugs_data {
-        let id = bug.get("System.Id").and_then(|v| v.as_u64()).unwrap_or(0);
-        let title = bug.get("System.Title").and_then(|v| v.as_str()).unwrap_or("");
-        html.push_str(&format!("<li><b>#{}:</b> {}</li>", id, title));
+    for bug in bugs {
+        html.push_str(&format!(
+            "<li><b>#{}:</b> {}<br><small>State: {} | Created: {} | Activated: {}</small></li>",
+            bug.id,
+            html_escape::encode_text(&bug.title),
+            html_escape::encode_text(&bug.state),
+            bug.created_date.as_deref().unwrap_or("-"),
+            bug.activated_date.as_deref().unwrap_or("-")
+        ));
     }
     html.push_str("</ul>");
     Ok(html)
