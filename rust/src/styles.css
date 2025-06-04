@@ -248,4 +248,20 @@ details summary {
   button:active {
     background-color: #0f0f0f69;
   }
+  /* Fix for report area and markdown text in dark mode */
+  .report-area, .report-area * {
+    color: #f6f6f6 !important;
+    background: transparent !important;
+  }
+}
+
+/* Always ensure readable text on white background */
+.report-area, .report-area * {
+  color: #222 !important;
+  background: transparent !important;
+}
+
+body, :root {
+  background: #f6f6f6;
+  color: #222;
 }
