@@ -38,7 +38,16 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
         work_items = client.fetch_active_bugs()
         
         if not work_items:
-            return "No active bugs assigned to you."
+            user_email = getattr(client, "user_email", None)
+            if not user_email:
+                # Try to get from env if not set on client
+                import os
+                user_email = os.getenv("AZURE_DEVOPS_USER_EMAIL", "<not set>")
+            return (
+                f"No active bugs assigned to you.\n\n"
+                f"Tip: Please check your Azure DevOps account information in the `.env` file.\n"
+                f"Currently using email: `{user_email}`"
+            )
         
         progress(0.2, desc="Fetching bug details...")
         
