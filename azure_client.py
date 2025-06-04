@@ -167,7 +167,8 @@ class AzureDevOpsClient:
 
     def get_project_info(self):
         """Fetch basic project info to test connectivity"""
-        url = f"https://dev.azure.com/{ORG}/_apis/projects/{PROJECT}?api-version=6.0"
+        from config import API_VERSION
+        url = f"https://dev.azure.com/{ORG}/_apis/projects/{PROJECT}?api-version={API_VERSION}"
         response = requests.get(url, auth=("", AZURE_DEVOPS_PAT))
         response.raise_for_status()
         return response.json()
