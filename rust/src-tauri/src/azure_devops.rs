@@ -39,7 +39,7 @@ impl AzureDevOpsClient {
         });
         let mut headers = HeaderMap::new();
         let pat = format!("Basic {}", base64::engine::general_purpose::STANDARD.encode(format!(":{}", self.config.azure_devops_pat)));
-        headers.insert(AUTHORIZATION, HeaderValue::from_str(&pat).unwrap());
+        headers.insert(AUTHORIZATION, HeaderValue::from_str(&pat).map_err(|e| format!("Invalid header value: {}", e))?);
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         let body = serde_json::to_vec(&query).map_err(|e| format!("JSON serialize error: {}", e))?;
         let resp = self
