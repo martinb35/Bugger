@@ -106,18 +106,21 @@ impl AzureDevOpsClient {
         if let Some(items) = json["value"].as_array() {
             for item in items {
                 let fields = item["fields"].as_object();
-                let id = item["id"].as_u64().unwrap_or(0);
-                let title = fields.and_then(|f| f.get("System.Title")).and_then(|v| v.as_str()).unwrap_or("").to_string();
-                let state = fields.and_then(|f| f.get("System.State")).and_then(|v| v.as_str()).unwrap_or("").to_string();
-                let created_date = fields.and_then(|f| f.get("System.CreatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
-                let description = fields.and_then(|f| f.get("System.Description")).and_then(|v| v.as_str()).map(|s| s.to_string());
-                bugs.push(Bug {
-                    id,
-                    title,
-                    state,
-                    created_date,
-                    description,
-                });
+                if let Some(id) = item["id"].as_u64() {
+                    let title = fields.and_then(|f| f.get("System.Title")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let state = fields.and_then(|f| f.get("System.State")).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let created_date = fields.and_then(|f| f.get("System.CreatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                    let description = fields.and_then(|f| f.get("System.Description")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                    bugs.push(Bug {
+                        id,
+                        title,
+                        state,
+                        created_date,
+                        description,
+                    });
+                } else {
+                    println!("Warning: Missing or invalid bug ID in response item: {:?}", item);
+                }
             }
         }
         Ok(bugs)
