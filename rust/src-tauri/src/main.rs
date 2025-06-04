@@ -37,6 +37,9 @@ impl AppConfig {
     }
 }
 
+mod azure_devops;
+use azure_devops::AzureDevOpsClient;
+
 fn main() {
     tauri_app_lib::run()
 }
