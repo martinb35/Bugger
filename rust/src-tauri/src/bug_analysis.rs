@@ -57,6 +57,10 @@ pub enum BugCategory {
     Security,
     FileSystem,
     Memory,
+    Driver,
+    Boot,
+    UI,
+    Network,
     Other,
 }
 
@@ -64,17 +68,25 @@ pub fn categorize_bugs(bugs: &[Bug]) -> std::collections::HashMap<BugCategory, V
     use BugCategory::*;
     let mut map: std::collections::HashMap<BugCategory, Vec<&Bug>> = std::collections::HashMap::new();
     for bug in bugs {
-        let text = format!("{} {}", bug.title, bug.description.as_deref().unwrap_or(""));
-        let cat = if text.contains("crash") || text.contains("bsod") {
+        let text = format!("{} {}", bug.title.to_lowercase(), bug.description.as_deref().unwrap_or("").to_lowercase());
+        let cat = if text.contains("crash") || text.contains("bsod") || text.contains("exception") || text.contains("fault") || text.contains("bugcheck") {
             Crash
-        } else if text.contains("slow") || text.contains("hang") {
+        } else if text.contains("slow") || text.contains("hang") || text.contains("freeze") || text.contains("performance") || text.contains("timeout") || text.contains("unresponsive") {
             Performance
-        } else if text.contains("security") || text.contains("auth") {
+        } else if text.contains("security") || text.contains("permission") || text.contains("access") || text.contains("privilege") || text.contains("auth") || text.contains("token") {
             Security
-        } else if text.contains("file") || text.contains("disk") {
+        } else if text.contains("file") || text.contains("disk") || text.contains("storage") || text.contains("ntfs") || text.contains("fat32") || text.contains("corruption") {
             FileSystem
-        } else if text.contains("memory") || text.contains("leak") {
+        } else if text.contains("memory") || text.contains("leak") || text.contains("heap") || text.contains("allocation") || text.contains("out of memory") || text.contains("oom") {
             Memory
+        } else if text.contains("driver") || text.contains("device") || text.contains("hardware") || text.contains("pnp") || text.contains("plug and play") {
+            Driver
+        } else if text.contains("boot") || text.contains("startup") || text.contains("start") || text.contains("initialization") || text.contains("init") || text.contains("loading") {
+            Boot
+        } else if text.contains("ui") || text.contains("button") || text.contains("window") || text.contains("dialog") || text.contains("menu") || text.contains("screen") {
+            UI
+        } else if text.contains("network") || text.contains("connect") || text.contains("disconnect") || text.contains("timeout") || text.contains("tcp") || text.contains("udp") {
+            Network
         } else {
             Other
         };
