@@ -43,6 +43,7 @@ use tauri::Manager;
 
 #[tauri::command]
 fn fetch_and_analyze_bugs() -> Result<String, String> {
+    println!("[Tauri backend] fetch_and_analyze_bugs called");
     let config = AppConfig::from_env()?;
     let client = AzureDevOpsClient::new(config);
     let ids = client.fetch_active_bugs()?;
