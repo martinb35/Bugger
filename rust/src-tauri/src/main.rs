@@ -50,6 +50,7 @@ fn fetch_and_analyze_bugs() -> Result<String, String> {
         return Ok("<b>No active bugs assigned to you.</b>".to_string());
     }
     let bugs = client.fetch_bug_details(&ids)?;
+    println!("[Tauri backend] Found {} bugs", bugs.len());
     let mut html = String::from("<h2>Active Bugs</h2><ul>");
     for bug in bugs {
         html.push_str(&format!(

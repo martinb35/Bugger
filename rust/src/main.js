@@ -23,7 +23,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const reportArea = document.getElementById("report-area");
   if (fetchBugsBtn && reportArea) {
     fetchBugsBtn.addEventListener("click", async () => {
-      reportArea.innerHTML = "<em>Fetching and analyzing bugs...</em>";
+      reportArea.innerHTML = `<div class="spinner"></div><em>Fetching and analyzing bugs...</em>`;
       try {
         const report = await invoke("fetch_and_analyze_bugs");
         reportArea.innerHTML = report;
