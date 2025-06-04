@@ -42,7 +42,7 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
             if not user_email:
                 # Try to get from env if not set on client
                 import os
-                user_email = os.getenv("AZURE_DEVOPS_USER_EMAIL", "<not set>")
+                user_email = os.getenv("AZURE_DEVOPS_USER_EMAIL", "(email not configured)")
             return (
                 f"No active bugs assigned to you.\n\n"
                 f"Tip: Please check your Azure DevOps account information in the `.env` file.\n"
