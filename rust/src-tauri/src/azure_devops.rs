@@ -15,7 +15,6 @@ pub struct Bug {
     pub title: String,
     pub state: String,
     pub created_date: Option<String>,
-    pub activated_date: Option<String>,
     pub description: Option<String>,
 }
 
@@ -81,7 +80,6 @@ impl AzureDevOpsClient {
                 "System.Title",
                 "System.State",
                 "System.CreatedDate",
-                "System.ActivatedDate",
                 "System.Description"
             ]
         });
@@ -112,14 +110,12 @@ impl AzureDevOpsClient {
                 let title = fields.and_then(|f| f.get("System.Title")).and_then(|v| v.as_str()).unwrap_or("").to_string();
                 let state = fields.and_then(|f| f.get("System.State")).and_then(|v| v.as_str()).unwrap_or("").to_string();
                 let created_date = fields.and_then(|f| f.get("System.CreatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
-                let activated_date = fields.and_then(|f| f.get("System.ActivatedDate")).and_then(|v| v.as_str()).map(|s| s.to_string());
                 let description = fields.and_then(|f| f.get("System.Description")).and_then(|v| v.as_str()).map(|s| s.to_string());
                 bugs.push(Bug {
                     id,
                     title,
                     state,
                     created_date,
-                    activated_date,
                     description,
                 });
             }
