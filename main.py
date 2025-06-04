@@ -23,7 +23,16 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
     try:
         # Initialize components
         client = AzureDevOpsClient()
-        
+
+        # --- ADO Connectivity Check ---
+        try:
+            # Try fetching project info or a minimal API call
+            project_info = client.get_project_info()  # You may need to implement this method
+            print(f"[ADO CONNECTIVITY] Project info: {project_info}")
+        except Exception as ado_err:
+            print(f"[ADO ERROR] Could not access Azure DevOps project: {ado_err}")
+            return f"Error: Could not access Azure DevOps project. Details: {ado_err}"
+
         # Choose analyzer based on AI availability
         if AI_ENABLED:
             analyzer_instance = AIBugAnalyzer()
