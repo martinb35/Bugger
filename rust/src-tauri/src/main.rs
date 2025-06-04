@@ -39,7 +39,31 @@ impl AppConfig {
 
 mod azure_devops;
 use azure_devops::AzureDevOpsClient;
+use tauri::Manager;
+
+#[tauri::command]
+fn fetch_and_analyze_bugs() -> Result<String, String> {
+    let config = AppConfig::from_env()?;
+    let client = AzureDevOpsClient::new(config);
+    let ids = client.fetch_active_bugs()?;
+    if ids.is_empty() {
+        return Ok("<b>No active bugs assigned to you.</b>".to_string());
+    }
+    let (bugs_data, _created_dates, _activated_dates) = client.fetch_bug_details(&ids)?;
+    // For now, just list the bug titles and IDs in HTML
+    let mut html = String::from("<h2>Active Bugs</h2><ul>");
+    for bug in bugs_data {
+        let id = bug.get("System.Id").and_then(|v| v.as_u64()).unwrap_or(0);
+        let title = bug.get("System.Title").and_then(|v| v.as_str()).unwrap_or("");
+        html.push_str(&format!("<li><b>#{}:</b> {}</li>", id, title));
+    }
+    html.push_str("</ul>");
+    Ok(html)
+}
 
 fn main() {
-    tauri_app_lib::run()
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![fetch_and_analyze_bugs])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
