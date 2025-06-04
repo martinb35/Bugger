@@ -50,8 +50,13 @@ impl AzureDevOpsClient {
             .body(body)
             .send()
             .map_err(|e| format!("Request error: {}", e))?;
+        let status = resp.status();
         let resp_text = resp.text().map_err(|e| format!("Response text error: {}", e))?;
-        let json: Value = serde_json::from_str(&resp_text).map_err(|e| format!("JSON error: {}", e))?;
+        if !status.is_success() {
+            println!("Azure DevOps API error ({}): {}", status, resp_text);
+            return Err(format!("Azure DevOps API error ({}): {}", status, resp_text));
+        }
+        let json: Value = serde_json::from_str(&resp_text).map_err(|e| format!("JSON error: {}\nRaw response: {}", e, resp_text))?;
         let ids = json["workItems"]
             .as_array()
             .unwrap_or(&vec![])
@@ -92,8 +97,13 @@ impl AzureDevOpsClient {
             .body(body)
             .send()
             .map_err(|e| format!("Request error: {}", e))?;
+        let status = resp.status();
         let resp_text = resp.text().map_err(|e| format!("Response text error: {}", e))?;
-        let json: Value = serde_json::from_str(&resp_text).map_err(|e| format!("JSON error: {}", e))?;
+        if !status.is_success() {
+            println!("Azure DevOps API error ({}): {}", status, resp_text);
+            return Err(format!("Azure DevOps API error ({}): {}", status, resp_text));
+        }
+        let json: Value = serde_json::from_str(&resp_text).map_err(|e| format!("JSON error: {}\nRaw response: {}", e, resp_text))?;
         let mut bugs = vec![];
         if let Some(items) = json["value"].as_array() {
             for item in items {
