@@ -54,11 +54,24 @@ fn generate_bug_report_html(actionable: &[Bug], questionable: &[(Bug, Questionab
     html.push_str(&format!("<li><b>Actionable bugs:</b> {}</li>", actionable.len()));
     html.push_str(&format!("<li><b>Questionable bugs:</b> {}</li>", questionable.len()));
     html.push_str("</ul>");
+    // Get org and project for links
+    let (org, project) = if let Some(first) = actionable.first().or_else(|| questionable.first().map(|(b, _)| b)) {
+        // Try to get from env (since Bug struct doesn't have org/project)
+        let org = std::env::var("AZURE_DEVOPS_ORG").unwrap_or_else(|_| "ORG".to_string());
+        let project = std::env::var("AZURE_DEVOPS_PROJECT").unwrap_or_else(|_| "PROJECT".to_string());
+        (org, project)
+    } else {
+        ("ORG".to_string(), "PROJECT".to_string())
+    };
+    let bug_url = |id: u64| -> String {
+        format!("https://dev.azure.com/{}/{}/_workitems/edit/{}", org, project, id)
+    };
     if !questionable.is_empty() {
         html.push_str("<details open><summary>❓ Questionable Non-Actionable Bugs</summary><div class='warning'>Review these first to clean up your backlog before focusing on actionable bugs.</div><ul>");
         for (bug, cat) in questionable {
             html.push_str(&format!(
-                "<li><b>#{}:</b> {}<br><span class='category-Other'><small>Reason: {:?}</small></span></li>",
+                "<li><b><a href=\"{}\" target=\"_blank\">#{}</a>:</b> {}<br><span class='category-Other'><small>Reason: {:?}</small></span></li>",
+                bug_url(bug.id),
                 bug.id,
                 html_escape::encode_text(&bug.title),
                 cat
@@ -72,7 +85,8 @@ fn generate_bug_report_html(actionable: &[Bug], questionable: &[(Bug, Questionab
         html.push_str(&format!("<details><summary><span class='{}'>{:?} ({})</span></summary><ul>", cat_class, cat, bugs.len()));
         for bug in bugs.iter() {
             html.push_str(&format!(
-                "<li><b>#{}:</b> {}<br><small>State: {} | Created: {}</small>",
+                "<li><b><a href=\"{}\" target=\"_blank\">#{}</a>:</b> {}<br><small>State: {} | Created: {}</small>",
+                bug_url(bug.id),
                 bug.id,
                 html_escape::encode_text(&bug.title),
                 html_escape::encode_text(&bug.state),
