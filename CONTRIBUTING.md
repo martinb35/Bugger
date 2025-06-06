@@ -33,21 +33,22 @@ No changes for the sake of changes.
 - Clear, descriptive naming
 
 ### Current Architecture Example
-- `config.py` - Configuration
-- `azure_client.py` - API interactions
-- `bug_analyzer.py` - Statistics
-- `bug_categorizer.py` - Categorization
-- `report_generator.py` - Report generation
-- `questionable_analyzer.py` - Bug validation
-- `main.py` - Orchestration and UI
+- `config.py` - Configuration and environment variables
+- `azure_client.py` - Azure DevOps API interactions
+- `bug_analyzer.py` - Bug statistics calculations
+- `bug_categorizer.py` - Actionable bug categorization
+- `report_generator.py` - Report generation logic
+- `questionable_analyzer.py` - Heuristic-based questionable bug detection
+- `ai_bug_analyzer.py` - GPT-4o powered intelligent bug analysis (optional)
+- `main.py` - Main orchestration and adaptive Gradio UI
 
 ## 📝 Documentation Requirements
 
 ### README.md Updates
-- Update revision history for every feature
-- Use semantic versioning (currently v0.0.2)
-- Include date (YYYY-MM-DD format)
-- Never remove existing sections
+- Revision history has been moved to `REVISIONS.md`. Update this file for every feature.
+- Use semantic versioning (currently v0.0.3).
+- Include date (YYYY-MM-DD format).
+- Never remove existing sections.
 
 ### Example Entry:
 ```markdown

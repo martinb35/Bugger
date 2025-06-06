@@ -215,40 +215,40 @@ class AIBugAnalyzer:
         return dead_links
 
     def _group_similar_titles(self, bugs_by_category):
-        """GPT-4o powered grouping of bugs with similar titles"""
+        """GPT-4o powered grouping of bugs with priority for cryptic and similar titles"""
         all_bugs = []
         for category_bugs in bugs_by_category.values():
             all_bugs.extend(category_bugs)
-        
+
         if len(all_bugs) < 3:
             return []
-        
+
         # Extract titles for AI analysis
         titles = [bug[1] for bug in all_bugs]
-        
+
         prompt = f"""
-        Analyze these bug titles to find groups of 3 or more that are essentially duplicates or very similar:
-        
+        Analyze these bug titles to prioritize grouping of bugs with very similar and cryptic titles:
+
         {chr(10).join([f"{i}: {title}" for i, title in enumerate(titles)])}
-        
+
         Look for:
-        - Nearly identical titles with only minor variations (numbers, dates, etc.)
-        - Same core issue described differently
-        - Clear duplicates that should be consolidated
-        
+        - Titles that are nearly identical with cryptic technical jargon or placeholders.
+        - Same core issue described differently but with similar cryptic patterns.
+        - Clear duplicates that should be consolidated into specific groups.
+
         Respond with groups in this format:
         GROUP1: 0,1,2
         GROUP2: 5,7,9
-        
+
         Only include groups with 3+ items. If no groups found, respond with: NONE
         """
-        
+
         result = self._call_ai_api(prompt, max_tokens=200)
-        
+
         # Fallback to heuristic grouping if AI unavailable
         if "AI_UNAVAILABLE" in result or "AI_ERROR" in result:
             return self._fallback_title_grouping(all_bugs)
-        
+
         similar_groups = []
         if "NONE" not in result:
             lines = result.strip().split('\n')
@@ -262,30 +262,8 @@ class AIBugAnalyzer:
                             similar_groups.extend(group_bugs)
                     except:
                         continue
-        
-        return similar_groups
 
-    def _fallback_title_grouping(self, all_bugs):
-        """Fallback heuristic title grouping"""
-        # Simple heuristic - group by normalized titles
-        title_groups = defaultdict(list)
-        
-        for bug in all_bugs:
-            title = bug[1] or ""
-            # Normalize title
-            normalized = re.sub(r'\d+', 'N', title.lower())
-            normalized = re.sub(r'[^\w\s]', ' ', normalized)
-            normalized = ' '.join(normalized.split())
-            
-            title_groups[normalized].append(bug)
-        
-        # Return bugs from groups with 3+ items
-        similar_bugs = []
-        for group_bugs in title_groups.values():
-            if len(group_bugs) >= 3:
-                similar_bugs.extend(group_bugs)
-        
-        return similar_bugs
+        return similar_groups
 
     def analyze_and_separate_bugs(self, bugs_data, progress_callback=None):
         """GPT-4o powered analysis to separate questionable and actionable bugs"""
@@ -369,33 +347,38 @@ class AIBugAnalyzer:
         return questionable_bugs, actionable_bugs_data
 
     def generate_questionable_section(self, questionable_bugs):
-        """Generate markdown for questionable bugs section"""
+        """Generate markdown for questionable bugs section with detailed explanations"""
         md = []
-        
+
         if not questionable_bugs:
             return md
-            
+
         md.append("## ❓ GPT-4o Detected Non-Actionable Bugs")
         md.append(f"**Total Count:** {len(questionable_bugs)} bugs flagged by GPT-4o as non-actionable")
-        md.append("**⚠️ Recommendation:** GPT-4o has identified these bugs as lacking sufficient detail or having issues that prevent immediate action.\n")
-        
-        # Display non-empty categories
+        md.append("**⚠️ Recommendation:** GPT-4o has identified these bugs as lacking sufficient detail or having issues that prevent immediate action.")
+
+        # Display non-empty categories with detailed explanations
         for category_name, bugs_in_category in self.questionable_categories.items():
             if bugs_in_category:
                 md.append(f"### 🤖 {category_name} ({len(bugs_in_category)} bugs)")
                 md.append(f"**GPT-4o Assessment:** {self.category_explanations[category_name]}")
-                
+                md.append("**Detailed Explanation:** These bugs lack specific details that would allow the receiver to act upon them effectively. For example:")
+                md.append("- Missing clear problem descriptions, making it unclear what needs to be fixed.")
+                md.append("- References to missing attachments or links that are crucial for understanding the issue.")
+                md.append("- Placeholder text or test data that does not provide actionable information.")
+                md.append("- Vague references to internal discussions or emails without context.")
+
                 # Create query links for this category
                 bug_ids = [str(bug[0]) for bug in bugs_in_category]
-                
+
                 if len(bug_ids) <= BATCH_SIZE:
                     wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
-FROM WorkItems 
-WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
-AND [System.State] = 'Active' 
-AND [System.Id] IN ({','.join(bug_ids)})"""
-                    
+    FROM WorkItems 
+    WHERE [System.WorkItemType] = 'Bug' 
+    AND [System.AssignedTo] = '{USER_EMAIL}' 
+    AND [System.State] = 'Active' 
+    AND [System.Id] IN ({','.join(bug_ids)})"""
+
                     encoded_wiql = quote(wiql_query)
                     query_url = f"https://dev.azure.com/{ORG}/{PROJECT}/_workitems?_a=query&wiql={encoded_wiql}"
                     md.append(f"**[→ Review all {category_name} bugs]({query_url})**")
@@ -404,25 +387,25 @@ AND [System.Id] IN ({','.join(bug_ids)})"""
                     for i in range(0, len(bug_ids), BATCH_SIZE):
                         batch_ids = bug_ids[i:i + BATCH_SIZE]
                         batch_num = (i // BATCH_SIZE) + 1
-                        
+
                         wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
-FROM WorkItems 
-WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
-AND [System.State] = 'Active' 
-AND [System.Id] IN ({','.join(batch_ids)})"""
-                        
+    FROM WorkItems 
+    WHERE [System.WorkItemType] = 'Bug' 
+    AND [System.AssignedTo] = '{USER_EMAIL}' 
+    AND [System.State] = 'Active' 
+    AND [System.Id] IN ({','.join(batch_ids)})"""
+
                         encoded_wiql = quote(wiql_query)
                         query_url = f"https://dev.azure.com/{ORG}/{PROJECT}/_workitems?_a=query&wiql={encoded_wiql}"
                         md.append(f"  - [Batch {batch_num}]({query_url})")
-                
-                # Show examples
+
+                # Show examples with detailed previews
                 md.append("\n**Examples:**")
                 for bug_id, title, description, url, created, activated in bugs_in_category[:2]:
                     desc_preview = (description or "No description")[:80] + "..." if len(description or "") > 80 else (description or "No description")
-                    md.append(f"- Bug {bug_id}: *\"{desc_preview}\"*")
+                    md.append(f"- Bug {bug_id}: *\"{desc_preview}\"* - This bug lacks actionable details such as clear steps to reproduce or specific error messages.")
                 md.append("")
-        
+
         md.append("**🤖 GPT-4o Recommended Actions:**")
         md.append("- **High Confidence:** GPT-4o flagged bugs can likely be closed or require clarification")
         md.append("- **Quick Wins:** Empty descriptions and placeholder text bugs")
@@ -431,5 +414,27 @@ AND [System.Id] IN ({','.join(batch_ids)})"""
         md.append("")
         md.append("---")
         md.append("")
-        
+
         return md
+
+    def _fallback_title_grouping(self, all_bugs):
+        """Fallback heuristic title grouping"""
+        # Simple heuristic - group by normalized titles
+        title_groups = defaultdict(list)
+
+        for bug in all_bugs:
+            title = bug[1] or ""
+            # Normalize title
+            normalized = re.sub(r'\d+', 'N', title.lower())
+            normalized = re.sub(r'[^\w\s]', ' ', normalized)
+            normalized = ' '.join(normalized.split())
+
+            title_groups[normalized].append(bug)
+
+        # Return bugs from groups with 2+ items
+        similar_bugs = []
+        for group_bugs in title_groups.values():
+            if len(group_bugs) >= 2:
+                similar_bugs.extend(group_bugs)
+
+        return similar_bugs
