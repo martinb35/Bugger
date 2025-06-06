@@ -15,6 +15,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Configuration constants
 BATCH_SIZE = 50
+API_VERSION = "7.0"  # Or the version your Azure DevOps client expects
 
 # Validate required environment variables (excluding optional AI features)
 required_vars = {
