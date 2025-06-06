@@ -5,4 +5,4 @@ tqdm==4.66.1
 urllib3==2.0.7
 
 # Optional: For AI-powered analysis
-# openai>=1.0.0
+openai>=1.0.0
