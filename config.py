@@ -8,6 +8,9 @@ load_dotenv()
 ORG = os.getenv('AZURE_DEVOPS_ORG')
 PROJECT = os.getenv('AZURE_DEVOPS_PROJECT')
 USER_EMAIL = os.getenv('AZURE_DEVOPS_USER_EMAIL')
+
+print(f"[DEBUG] Using Azure DevOps user email: {USER_EMAIL}")
+
 AZURE_DEVOPS_PAT = os.getenv('AZURE_DEVOPS_PAT')
 
 # AI Configuration
