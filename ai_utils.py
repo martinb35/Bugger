@@ -6,11 +6,28 @@ from config import ORG, PROJECT, AZURE_DEVOPS_PAT
 
 def call_ai_api(prompt, max_tokens=150):
     """
-    Stub for calling an AI API (e.g., OpenAI GPT-4o).
-    Replace with your actual API call logic.
+    Call GPT-4o API to evaluate bug actionability.
     """
-    # Example: return a dummy response for now
-    return "AI response placeholder"
+    try:
+        import openai
+
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a bug triage expert. Analyze bug reports for actionability."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=0.1  # Low temperature for consistent results
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except ImportError:
+        return "AI_UNAVAILABLE: OpenAI package not installed"
+    except Exception as e:
+        # Fallback to basic heuristics if AI fails
+        return f"AI_ERROR: {str(e)[:50]}"
 
 def fallback_person_check(created_by):
     """Fallback heuristic to check if the creator is a real person."""
