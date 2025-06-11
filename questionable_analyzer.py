@@ -396,7 +396,7 @@ class QuestionableAnalyzer:
         
         return questionable_bugs, actionable_bugs_data
 
-    def generate_questionable_section(self, questionable_bugs):
+    def generate_questionable_section(self, questionable_bugs, assigned_to_email):
         """Generate markdown for questionable bugs section"""
         md = []
         
@@ -425,7 +425,7 @@ class QuestionableAnalyzer:
                     wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
 FROM WorkItems 
 WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
+AND [System.AssignedTo] = '{assigned_to_email}' 
 AND [System.State] = 'Active' 
 AND [System.Id] IN ({','.join(bug_ids)})"""
                     
@@ -442,7 +442,7 @@ AND [System.Id] IN ({','.join(bug_ids)})"""
                         wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
 FROM WorkItems 
 WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
+AND [System.AssignedTo] = '{assigned_to_email}' 
 AND [System.State] = 'Active' 
 AND [System.Id] IN ({','.join(batch_ids)})"""
                         
