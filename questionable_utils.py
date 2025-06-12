@@ -14,7 +14,7 @@ def is_real_person_name(created_by):
     if any(indicator in name for indicator in bot_indicators):
         return False
     # Heuristic: real names usually have a space and are not all lowercase
-    if " " in name and not name.islower():
+    if " " in original_name and not original_name.islower():
         return True
     # Accept emails that look like real people
     if re.match(r"^[a-z]+\.[a-z]+@", name):
