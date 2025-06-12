@@ -4,7 +4,7 @@ from bug_analyzer import BugAnalyzer
 from bug_categorizer import BugCategorizer
 from report_generator import ReportGenerator
 from questionable_analyzer import QuestionableAnalyzer
-from config import AI_ENABLED
+from config import AI_ENABLED, USER_EMAIL
 
 # Conditionally import AI analyzer
 if AI_ENABLED:
@@ -18,11 +18,11 @@ if AI_ENABLED:
 if not AI_ENABLED:
     print("📊 Using heuristic-based analysis")
 
-def fetch_and_summarize_bugs(progress=gr.Progress()):
+def fetch_and_summarize_bugs(user_email=None, progress=gr.Progress()):
     """Main function to fetch and analyze bugs"""
     try:
-        # Initialize components
-        client = AzureDevOpsClient()
+        # Always use the provided email, or fallback to config
+        client = AzureDevOpsClient(user_email=user_email or USER_EMAIL)
 
         # --- ADO Connectivity Check ---
         try:
@@ -93,7 +93,8 @@ def fetch_and_summarize_bugs(progress=gr.Progress()):
             md.append("*Analysis using pattern-based heuristics*\n")
         
         # Add questionable bugs section
-        md.extend(analyzer_instance.generate_questionable_section(questionable_bugs))
+        output_md = analyzer_instance.generate_questionable_section(questionable_bugs, user_email or USER_EMAIL)
+        md.extend(output_md)
         
         # Initialize components for actionable bugs analysis
         bug_analyzer = BugAnalyzer()
@@ -131,9 +132,15 @@ with gr.Blocks() as demo:
     gr.Markdown(title)
     gr.Markdown(f"*{subtitle}*")
     
-    with gr.Row():
-        btn = gr.Button("🔄 Refresh Analysis", scale=1)
-        
+    # Add email input box, pre-populated with env value
+    email_box = gr.Textbox(
+        label="Azure DevOps Email",
+        value=USER_EMAIL,
+        interactive=True
+    )
+
+    btn = gr.Button("🔄 Refresh Analysis", scale=1)
+    
     if AI_ENABLED:
         initial_message = "Click 'Refresh Analysis' to start AI-powered bug analysis..."
     else:
@@ -141,13 +148,12 @@ with gr.Blocks() as demo:
         
     output = gr.Markdown(value=initial_message)
     
-    # Both button click and demo load use the same function with progress
-    btn.click(fn=fetch_and_summarize_bugs, outputs=output, show_progress=True)
-    
-    # Use a button click to trigger initial load so progress is visible
-    demo.load(fn=lambda: gr.update(visible=True), outputs=btn).then(
-        fn=fetch_and_summarize_bugs, outputs=output, show_progress=True
-    )
+    # Refresh analysis when button is clicked or email is submitted (not on every keystroke)
+    btn.click(fn=fetch_and_summarize_bugs, inputs=email_box, outputs=output, show_progress=True)
+    email_box.submit(fn=fetch_and_summarize_bugs, inputs=email_box, outputs=output, show_progress=True)
+
+    # Run analysis at startup
+    demo.load(fn=fetch_and_summarize_bugs, inputs=email_box, outputs=output, show_progress=True)
 
 if __name__ == "__main__":
     demo.launch(share=False)

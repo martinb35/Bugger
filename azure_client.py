@@ -4,10 +4,11 @@ from datetime import datetime, timezone
 from config import ORG, PROJECT, USER_EMAIL, AZURE_DEVOPS_PAT
 
 class AzureDevOpsClient:
-    def __init__(self):
+    def __init__(self, user_email=None):
+        from config import USER_EMAIL
+        self.user_email = user_email or USER_EMAIL
         self.org = ORG
         self.project = PROJECT
-        self.user_email = USER_EMAIL
         self.pat = AZURE_DEVOPS_PAT
         
         # Create authentication header

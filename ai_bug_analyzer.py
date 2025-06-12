@@ -177,7 +177,8 @@ class AIBugAnalyzer:
             progress_callback(100, "GPT-4o analysis complete!")
         return questionable_bugs, actionable_bugs_data
 
-    def generate_questionable_section(self, questionable_bugs):
+    def generate_questionable_section(self, questionable_bugs, assigned_to_email):
+        """Generate markdown for questionable bugs section with detailed explanations"""
         md = []
         if not questionable_bugs:
             return md
@@ -196,11 +197,12 @@ class AIBugAnalyzer:
                 bug_ids = [str(bug[0]) for bug in bugs_in_category]
                 if len(bug_ids) <= BATCH_SIZE:
                     wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
-FROM WorkItems 
-WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
-AND [System.State] = 'Active' 
-AND [System.Id] IN ({','.join(bug_ids)})"""
+    FROM WorkItems 
+    WHERE [System.WorkItemType] = 'Bug' 
+    AND [System.AssignedTo] = '{assigned_to_email}' 
+    AND [System.State] = 'Active' 
+    AND [System.Id] IN ({','.join(bug_ids)})"""
+
                     encoded_wiql = quote(wiql_query)
                     query_url = f"https://dev.azure.com/{ORG}/{PROJECT}/_workitems?_a=query&wiql={encoded_wiql}"
                     md.append(f"**[→ Review all {category_name} bugs]({query_url})**")
@@ -210,11 +212,12 @@ AND [System.Id] IN ({','.join(bug_ids)})"""
                         batch_ids = bug_ids[i:i + BATCH_SIZE]
                         batch_num = (i // BATCH_SIZE) + 1
                         wiql_query = f"""SELECT [System.Id], [System.Title], [System.State] 
-FROM WorkItems 
-WHERE [System.WorkItemType] = 'Bug' 
-AND [System.AssignedTo] = '{USER_EMAIL}' 
-AND [System.State] = 'Active' 
-AND [System.Id] IN ({','.join(batch_ids)})"""
+    FROM WorkItems 
+    WHERE [System.WorkItemType] = 'Bug' 
+    AND [System.AssignedTo] = '{assigned_to_email}' 
+    AND [System.State] = 'Active' 
+    AND [System.Id] IN ({','.join(batch_ids)})"""
+
                         encoded_wiql = quote(wiql_query)
                         query_url = f"https://dev.azure.com/{ORG}/{PROJECT}/_workitems?_a=query&wiql={encoded_wiql}"
                         md.append(f"  - [Batch {batch_num}]({query_url})")
