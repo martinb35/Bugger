@@ -143,7 +143,7 @@ class QuestionableAnalyzer:
                         f"Evaluating bot bug {bug_id}..."
                     )
 
-                is_actionable, test_results = evaluate_bot_bug_actionability(
+                is_actionable = evaluate_bot_bug_actionability(
                     bug_id, title, description, all_titles, progress_callback
                 )
 
